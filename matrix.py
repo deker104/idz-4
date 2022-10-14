@@ -1,35 +1,46 @@
-from copy import deepcopy
-from numbers import Number
-from typing import Optional, List
+from __future__ import annotations
+from typing import Optional, Sequence, Type, List
+
+from fraction import Fraction, Number
 
 
 class Matrix:
-    def __init__(self, data: Optional[List[List[Number]]]) -> None:
-        self.data = data
-        self.height = len(self.data)
-        if self.data:
-            self.width = len(self.data[0])
+    def __init__(self: Matrix, data: Optional[Sequence[Sequence[Number]]]) -> None:
+        self.data: List[List[Number]]
+        self.height: int
+        self.width: int
+
+        if data is None:
+            self.data = []
+            self.height = 0
+            self.width = 0
+            return
+        self.height = len(data)
+        if data:
+            self.width = len(data[0])
         else:
-            self.width = 1
+            self.width = 0
+        self.data = [[data[row][col]
+                      for col in range(self.width)] for row in range(self.height)]
 
     @classmethod
-    def zero(cls, n: int, m: int):
+    def zero(cls: Type[Matrix], n: int, m: int) -> Matrix:
         data = [[0 for _ in range(m)] for _ in range(n)]
         return cls(data)
 
     @classmethod
-    def identity(cls, n: int):
+    def identity(cls: Type[Matrix], n: int) -> Matrix:
         data = [[1 if i == j else 0 for j in range(n)] for i in range(n)]
         return cls(data)
 
-    def copy(self):
-        return deepcopy(self)
+    def copy(self: Matrix) -> Matrix:
+        return type(self)(self.data.copy())
 
-    def swap_rows(self, i: int, j: int):
+    def swap_rows(self: Matrix, i: int, j: int) -> Matrix:
         self.data[i], self.data[j] = self.data[j], self.data[i]
         return self
 
-    def add_row(self, i: int, j: int, lamb: Number = 1):
+    def add_row(self: Matrix, i: int, j: int, lamb: Number = 1) -> Matrix:
         if lamb == 0:
             return self
 
@@ -37,7 +48,7 @@ class Matrix:
             self.data[i][col] += self.data[j][col] * lamb
         return self
 
-    def multiply_row(self, i: int, lamb: Number):
+    def multiply_row(self: Matrix, i: int, lamb: Number) -> Matrix:
         assert lamb != 0
 
         if lamb == 1:
@@ -47,7 +58,7 @@ class Matrix:
             self.data[i][col] *= lamb
         return self
 
-    def gcd_rows(self, i: int, j: int, col: int):
+    def gcd_rows(self: Matrix, i: int, j: int, col: int) -> Matrix:
         if i == j:
             return self
         if self.data[i][col] < 0:
@@ -55,12 +66,12 @@ class Matrix:
         if self.data[j][col] < 0:
             self.multiply_row(j, -1)
         while self.data[j][col] != 0:
-            lamb = -(self.data[i][col] // self.data[j][col])
+            lamb = -(Fraction(self.data[i][col], self.data[j][col]))
             self.add_row(i, j, lamb)
             self.swap_rows(i, j)
         return self
 
-    def make_triangle(self):
+    def make_triangle(self: Matrix) -> Matrix:
         current = 0
         for col in range(self.width):
             for row in range(current + 1, self.height):
@@ -70,13 +81,13 @@ class Matrix:
             current += 1
         return self
 
-    def make_perfect(self):
+    def make_perfect(self: Matrix) -> Matrix:
         self.make_triangle()
         for i in range(self.height):
             for col in range(self.width):
                 if self.data[i][col] == 0:
                     continue
-                self.multiply_row(i, 1 / self.data[i][col])
+                self.multiply_row(i, Fraction(1, self.data[i][col]))
                 for j in range(self.height):
                     if i == j:
                         continue
@@ -84,7 +95,7 @@ class Matrix:
                 break
         return self
 
-    def __matmul__(self, other):
+    def __matmul__(self: Matrix, other: Matrix) -> Matrix:
         assert self.width == other.height
 
         n, k = self.height, self.width
@@ -97,7 +108,7 @@ class Matrix:
                                               other.data[mid][col])
         return result
 
-    def _repr_latex_(self):
+    def _repr_latex_(self: Matrix) -> str:
         rows = [' & '.join(map(str, self.data[row]))
                 for row in range(self.height)]
         rows = [f'{row} \\\\\n' for row in rows]
