@@ -79,6 +79,8 @@ class Matrix:
             if self.data[current][col] == 0:
                 continue
             current += 1
+            if current == self.height:
+                break
         return self
 
     def make_perfect(self: Matrix) -> Matrix:
@@ -97,6 +99,34 @@ class Matrix:
 
     def is_zero(self: Matrix) -> bool:
         return all(self.data[row][col] == 0 for row in range(self.height) for col in range(self.width))
+
+    def is_identity(self: Matrix) -> Optional[Number]:
+        const: Optional[Number] = None
+        for row in range(self.height):
+            for col in range(self.width):
+                if row == col:
+                    if const is None or self.data[row][col] == const:
+                        const = self.data[row][col]
+                    else:
+                        return None
+                else:
+                    if self.data[row][col] != 0:
+                        return None
+        return const
+
+    def __imul__(self: Matrix, other: Number) -> Matrix:
+        for row in range(self.height):
+            for col in range(self.width):
+                self.data[row][col] *= other
+        return self
+
+    def __mul__(self: Matrix, other: Number) -> Matrix:
+        result = self.copy()
+        result *= other
+        return result
+
+    def __rmul__(self: Matrix, other: Number) -> Matrix:
+        return self * other
 
     def __matmul__(self: Matrix, other: Matrix) -> Matrix:
         assert self.width == other.height
@@ -121,13 +151,8 @@ class Matrix:
         return self
 
     def __add__(self: Matrix, other: Matrix) -> Matrix:
-        assert self.height == other.height
-        assert self.width == other.width
-
         result = self.copy()
-        for row in range(self.height):
-            for col in range(self.width):
-                result.data[row][col] += other.data[row][col]
+        result += other
         return result
 
     def __isub__(self: Matrix, other: Matrix) -> Matrix:
@@ -140,13 +165,8 @@ class Matrix:
         return self
 
     def __sub__(self: Matrix, other: Matrix) -> Matrix:
-        assert self.height == other.height
-        assert self.width == other.width
-
         result = self.copy()
-        for row in range(self.height):
-            for col in range(self.width):
-                result.data[row][col] -= other.data[row][col]
+        result -= other
         return result
 
     def _repr_latex_(self: Matrix) -> str:
