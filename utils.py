@@ -1,7 +1,4 @@
-from typing import Literal
-
-
-def sign(x: int) -> Literal[-1, 1]:
+def sign(x: int) -> int:
     if x >= 0:
         return 1
     else:

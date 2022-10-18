@@ -82,11 +82,13 @@ class Fraction:
         else:
             return self.numerator * other.denomenator < other.numerator * self.denomenator
 
-    def __eq__(self: Fraction, other: Number) -> bool:
+    def __eq__(self: Fraction, other) -> bool:
         if isinstance(other, int):
             return self.numerator == other * self.denomenator
-        else:
+        elif isinstance(other, Fraction):
             return self.numerator * other.denomenator == other.numerator * self.denomenator
+        else:
+            return NotImplemented
 
     def __repr__(self: Fraction) -> str:
         sgn = '' if self.numerator >= 0 else '-'

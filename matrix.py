@@ -95,6 +95,9 @@ class Matrix:
                 break
         return self
 
+    def is_zero(self: Matrix) -> bool:
+        return all(self.data[row][col] == 0 for row in range(self.height) for col in range(self.width))
+
     def __matmul__(self: Matrix, other: Matrix) -> Matrix:
         assert self.width == other.height
 
@@ -106,6 +109,44 @@ class Matrix:
                 for col in range(m):
                     result.data[row][col] += (self.data[row][mid] *
                                               other.data[mid][col])
+        return result
+
+    def __iadd__(self: Matrix, other: Matrix) -> Matrix:
+        assert self.height == other.height
+        assert self.width == other.width
+
+        for row in range(self.height):
+            for col in range(self.width):
+                self.data[row][col] += other.data[row][col]
+        return self
+
+    def __add__(self: Matrix, other: Matrix) -> Matrix:
+        assert self.height == other.height
+        assert self.width == other.width
+
+        result = self.copy()
+        for row in range(self.height):
+            for col in range(self.width):
+                result.data[row][col] += other.data[row][col]
+        return result
+
+    def __isub__(self: Matrix, other: Matrix) -> Matrix:
+        assert self.height == other.height
+        assert self.width == other.width
+
+        for row in range(self.height):
+            for col in range(self.width):
+                self.data[row][col] -= other.data[row][col]
+        return self
+
+    def __sub__(self: Matrix, other: Matrix) -> Matrix:
+        assert self.height == other.height
+        assert self.width == other.width
+
+        result = self.copy()
+        for row in range(self.height):
+            for col in range(self.width):
+                result.data[row][col] -= other.data[row][col]
         return result
 
     def _repr_latex_(self: Matrix) -> str:
