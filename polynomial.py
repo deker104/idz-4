@@ -34,7 +34,7 @@ class Polynomial:
             matrices = [Matrix.zero(size, size) for _ in range(degree + 1)]
             for i in range(self.degree + 1):
                 for j in range(other.degree + 1):
-                    matrices[i + j] += self.matrices[i] @ self.matrices[j]
+                    matrices[i + j] += self.matrices[i] @ other.matrices[j]
             return Polynomial(matrices, self.symbol)
 
     def __rmul__(self: Polynomial, other: Union[Polynomial, Number]) -> Polynomial:
@@ -53,9 +53,14 @@ class Polynomial:
         lhs, rhs = self, other
         if rhs.degree > lhs.degree:
             lhs, rhs = rhs, lhs
+            swapped = True
+        else:
+            swapped = False
         result = lhs.copy()
         for i in range(rhs.degree + 1):
-            result.matrices[i] -= other.matrices[i]
+            result.matrices[i] -= rhs.matrices[i]
+        if swapped:
+            result *= -1
         return result
 
     def _repr_latex_(self: Polynomial) -> str:
