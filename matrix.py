@@ -22,15 +22,18 @@ class Matrix:
             self.width = 0
         self.data = [[data[row][col]
                       for col in range(self.width)] for row in range(self.height)]
+        for row in self.data:
+            assert len(row) == self.width
 
     @classmethod
-    def zero(cls: Type[Matrix], n: int, m: int) -> Matrix:
-        data = [[0 for _ in range(m)] for _ in range(n)]
+    def zero(cls: Type[Matrix], height: int, width: int) -> Matrix:
+        data = [[0 for _ in range(width)] for _ in range(height)]
         return cls(data)
 
     @classmethod
-    def identity(cls: Type[Matrix], n: int) -> Matrix:
-        data = [[1 if i == j else 0 for j in range(n)] for i in range(n)]
+    def identity(cls: Type[Matrix], size: int) -> Matrix:
+        data = [[1 if row == col else 0 for col in range(
+            size)] for row in range(size)]
         return cls(data)
 
     def copy(self: Matrix) -> Matrix:

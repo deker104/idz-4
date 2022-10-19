@@ -12,6 +12,9 @@ class Polynomial:
         self.symbol = symbol
         self.matrices = [matrix for matrix in matrices]
         self.relax()
+        self.size = self.matrices[0].width
+        for matrix in matrices:
+            assert matrix.width == matrix.height == self.size
 
     def relax(self: Polynomial) -> Polynomial:
         while len(self.matrices) > 1 and self.matrices[-1].is_zero():
