@@ -22,8 +22,6 @@ class Matrix:
             self.width = 0
         self.data = [[data[row][col]
                       for col in range(self.width)] for row in range(self.height)]
-        for row in self.data:
-            assert len(row) == self.width
 
     @classmethod
     def zero(cls: Type[Matrix], height: int, width: int) -> Matrix:
@@ -35,6 +33,22 @@ class Matrix:
         data = [[1 if row == col else 0 for col in range(
             size)] for row in range(size)]
         return cls(data)
+
+    @classmethod
+    def from_column(cls: Type[Matrix], data: Sequence[Number]):
+        data_ = [[x] for x in data]
+        return cls(data_)
+
+    @classmethod
+    def from_columns(cls: Type[Matrix], data: Sequence[Sequence[Number]]):
+        data_ = [[x for x in row] for row in zip(*data)]
+        return cls(data_)
+
+    def get_columns(self: Matrix):
+        return [[x for x in col] for col in zip(*self.data)]
+
+    def transpose(self: Matrix):
+        return Matrix(self.get_columns())
 
     def copy(self: Matrix) -> Matrix:
         return type(self)(self.data.copy())
@@ -116,6 +130,23 @@ class Matrix:
                     if self.data[row][col] != 0:
                         return None
         return const
+
+    def find_inverse(self: Matrix) -> Matrix:
+        assert self.height == self.width
+        n = self.height
+        M = Matrix.zero(n, 2 * n)
+        for i in range(n):
+            for j in range(n):
+                M.data[i][j] = self.data[i][j]
+            M.data[i][i + n] = 1
+        M.make_perfect()
+        for i in range(n):
+            assert M.data[i][i] == 1
+        B = Matrix.zero(n, n)
+        for i in range(n):
+            for j in range(n):
+                B.data[i][j] = M.data[i][j + n]
+        return B
 
     def __imul__(self: Matrix, other: Number) -> Matrix:
         for row in range(self.height):
