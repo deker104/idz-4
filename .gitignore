@@ -1,2 +1,4 @@
 __pycache__/
 .mypy_cache/
+idz.zip
+.ipynb_checkpoints/

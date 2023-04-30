@@ -35,19 +35,53 @@ class Matrix:
         return cls(data)
 
     @classmethod
-    def from_column(cls: Type[Matrix], data: Sequence[Number]):
+    def from_column(cls: Type[Matrix], data: Sequence[Number]) -> Matrix:
         data_ = [[x] for x in data]
         return cls(data_)
 
     @classmethod
-    def from_columns(cls: Type[Matrix], data: Sequence[Sequence[Number]]):
+    def from_columns(cls: Type[Matrix], data: Sequence[Sequence[Number]]) -> Matrix:
         data_ = [[x for x in row] for row in zip(*data)]
         return cls(data_)
 
-    def get_columns(self: Matrix):
+    @classmethod
+    def jordan_matrix(cls: Type[Matrix], size: int, lamb: Number) -> Matrix:
+        M = cls.zero(size, size)
+        for i in range(size):
+            M.data[i][i] = lamb
+        for i in range(size - 1):
+            M.data[i][i + 1] = 1
+        return M
+
+    @classmethod
+    def from_blocks(cls: Type[Matrix], blocks: Sequence[Matrix]) -> Matrix:
+        size = 0
+        for block in blocks:
+            assert block.height == block.width
+            size += block.height
+        M = cls.zero(size, size)
+        current = 0
+        for block in blocks:
+            for i in range(block.height):
+                for j in range(block.width):
+                    M.data[i + current][j + current] = block.data[i][j]
+            current += block.height
+        return M
+
+    @classmethod
+    def jordan_form(cls: Type[Matrix], blocks: Sequence[tuple[int, Number]]) -> Matrix:
+        jordan_blocks = [cls.jordan_matrix(size, lamb)
+                         for size, lamb in blocks]
+        return cls.from_blocks(jordan_blocks)
+
+    def get_columns(self: Matrix) -> list[list[Number]]:
         return [[x for x in col] for col in zip(*self.data)]
 
-    def transpose(self: Matrix):
+    def select_columns(self: Matrix, select: list[int]):
+        columns = self.get_columns()
+        return [columns[col] for col in select]
+
+    def transpose(self: Matrix) -> Matrix:
         return Matrix(self.get_columns())
 
     def copy(self: Matrix) -> Matrix:
@@ -147,6 +181,66 @@ class Matrix:
             for j in range(n):
                 B.data[i][j] = M.data[i][j + n]
         return B
+
+    def get_main_columns(self: Matrix) -> list[int]:
+        """
+            if `self` is not a triangle matrix the behaviour is undefined
+        """
+        current = 0
+        result: list[int] = []
+        for col in range(self.width):
+            if self.data[current][col] == 0:
+                continue
+            result.append(col)
+            current += 1
+            if current == self.height:
+                break
+        return result
+
+    def get_other_columns(self: Matrix) -> list[int]:
+        """
+            if `self` is not a triangle matrix the behaviour is undefined
+        """
+        current = 0
+        result: list[int] = []
+        for col in range(self.width):
+            if current == self.height or self.data[current][col] == 0:
+                result.append(col)
+                continue
+            current += 1
+
+        return result
+
+    def find_kernel(self: Matrix) -> list[list[Number]]:
+        M = self.copy().make_perfect()
+        main_columns = M.get_main_columns()
+        other_columns = M.get_other_columns()
+        kernel: list[list[Number]] = []
+        for i in other_columns:
+            new_column: list[Number] = [0] * M.width
+            new_column[i] = 1
+            for j, k in enumerate(main_columns):
+                new_column[k] = -M.data[j][i]
+            kernel.append(new_column)
+        return kernel
+
+    def find_column_basis(self: Matrix) -> list[int]:
+        return self.copy().make_perfect().get_main_columns()
+
+    def rank(self: Matrix) -> int:
+        return len(self.find_column_basis())
+
+    def pow(self: Matrix, x: int) -> Matrix:
+        assert self.height == self.width
+        assert x >= -1
+
+        if x == -1:
+            return self.find_inverse()
+
+        result = Matrix.identity(self.height)
+        for _ in range(x):
+            result = result @ self
+        return result
 
     def __imul__(self: Matrix, other: Number) -> Matrix:
         for row in range(self.height):
